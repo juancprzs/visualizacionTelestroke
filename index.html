@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/dc.css"/>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/styles.css">
+	<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+	<title>Datos de Telestroke</title>
+
+	<style>
+		#tipoMonitor .x.axis text {
+			text-anchor: end !important;
+			transform: rotate(-30deg);
+		}
+
+		#tipoACV .x.axis text {
+			text-anchor: end !important;
+			transform: rotate(-30deg);
+		}
+
+		#tipoHemo .x.axis text {
+			text-anchor: end !important;
+			transform: rotate(-30deg);
+		}
+
+		#medicoID .x.axis text {
+			text-anchor: end !important;
+			transform: rotate(-30deg);
+		}
+
+		.row {
+			margin: 0 5% 0 5%;
+		}
+	</style>
+</head>
+<body>
+	<h1>Visualización de datos de <i>telestroke</i></h1>
+	<p>Aquí se puede interactuar con las siguientes gráficas para explorar los datos recopilados en el proyecto <i>telestroke</i>.</p>
+
+	<div class="row">
+		<div class="col-md-6 dc-data-count">
+			<strong>Conteo total</strong>
+			<h2 style="font-size:130%; margin: 0">
+				<span>
+					<text><span class="filter-count"></span> registros seleccionados de <span class="total-count"></span>.
+					<a href="javascript:dc.filterAll(); dc.renderAll();">Reiniciar todo</a></text>
+				</span>
+			</h2>
+		</div>
+	</div>
+
+	<strong>Gráficas</strong>
+	<p>Para seleccionar más de una opción en un cuadro, sostenga la tecla Control, (<i>Ctrl</i>), en <i>Windows</i> o la tecla Comando, (<i>cmd</i>) en <i>Mac OS</i>, mientras selecciona entre las opciones.</p>
+
+	<div class="row">
+		<div id="medicoID"><h4>ID del médico</h4></div>
+		<div id="tipoMonitor"><h4>Tipo monitor</h4></div>
+		<div id="tipoACV"><h4>Tipo ACV</h4></div>
+		<div id="tipoHemo"><h4>Tipo Hemorragia</h4></div>
+	</div>
+
+	<div class="row">
+		<div id="hayNeoplasiaIntraaxial"><h4>Hay neoplasia <br>intraaxial?</h4></div>
+		<div id="hayMalformArterVeno"><h4>Hay malformación <br>anteriovenosa?</h4></div>
+		<div id="hayAneurisma"><h4>Hay <br>aneurisma?</h4></div>
+		<div id="hayTransformHemo"><h4>Hay transformación <br>hemorrágica?</h4></div>
+		<div id="hayContraImAdic"><h4>Hay contraimagen <br>adicional?</h4></div>
+	</div>
+
+	<script src="libraries/crossfilter.js"></script>
+	<script src="libraries/d3.js"></script>
+	<script src="libraries/dc.js"></script>
+	<script>
+
+		var tipoMonitorPie = dc.pieChart("#tipoMonitor");
+		var tipoACVPie = dc.pieChart("#tipoACV");
+		var tipoHemoPie = dc.pieChart("#tipoHemo");
+		var medicoIDPie = dc.pieChart("#medicoID");
+		var neoplasiaIntraaxialPie = dc.pieChart("#hayNeoplasiaIntraaxial");
+		var malformArterVenoPie = dc.pieChart("#hayMalformArterVeno");
+		var aneurismaPie = dc.pieChart("#hayAneurisma");
+		var transformHemoPie = dc.pieChart("#hayTransformHemo");
+		var contraImAdicPie = dc.pieChart("#hayContraImAdic");
+
+		d3.csv("datos/Lecturas-comma.csv", function(err,data){
+			if(err) throw err;
+			var ndx = crossfilter(data);
+			var all = ndx.groupAll();
+
+			dc.dataCount(".dc-data-count")
+				.dimension(ndx)
+				.group(all);
+
+			var extPadding = 25;
+			// Define dimensions, corresponding groups and charts
+
+			// TIPO MONITOR
+			var tipoMonitorDim = ndx.dimension(
+				function (d){
+					return d["TipoMonitor"].toLowerCase();
+			});
+			var tipoMonitorGroup = tipoMonitorDim.group();
+			tipoMonitorPie
+				.width(300)
+				.height(300)
+				.dimension(tipoMonitorDim)
+				.group(tipoMonitorGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+
+
+			// TIPO ACV
+			var tipoACVDim = ndx.dimension(
+				function (d){
+					return d["TipoACV"].toLowerCase();
+			});
+			var tipoACVGroup = tipoACVDim.group();
+			tipoACVPie
+				.width(300)
+				.height(300)
+				.dimension(tipoACVDim)
+				.group(tipoACVGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+
+
+			// TIPO HEMORRAGIA
+			var tipoHemoDim = ndx.dimension(
+				function (d){
+					if(d["TipoHemo"] === ''){
+						return 'no es hemorrágico';
+					}
+					return d["TipoHemo"]
+						.toLowerCase()
+						.replace('hemorragia', 'hemorr.')
+						.replace('intraparenquimatoso', 'intrapar.')
+						.replace('hematoma', 'hemato.');
+			});
+			var tipoHemoGroup = tipoHemoDim.group();
+			tipoHemoPie
+				.width(300)
+				.height(300)
+				.dimension(tipoHemoDim)
+				.group(tipoHemoGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+
+
+			// ID MEDICO
+			var medicoIDDim = ndx.dimension(
+				function (d){
+					return d["lecturasrads.UsuarioID"].toLowerCase();
+			});
+			var medicoIDGroup = medicoIDDim.group();
+			medicoIDPie
+				.width(300)
+				.height(300)
+				.dimension(medicoIDDim)
+				.group(medicoIDGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+
+
+			// NEOPLASIA INTRAAXIAL
+			var neoplasiaIntraaxialDim = ndx.dimension(
+				function (d){
+					return +d["HayNeoplasiaIntraaxial"];
+			});
+			var neoplasiaIntraaxialGroup = neoplasiaIntraaxialDim.group();
+			neoplasiaIntraaxialPie
+				.width(240)
+				.height(300)
+				.dimension(neoplasiaIntraaxialDim)
+				.group(neoplasiaIntraaxialGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+
+			// MALFORMACION ARTERIOVENOSA
+			var malformArterVenoDim = ndx.dimension(
+				function (d){
+					return +d["HayMalformacionArteriovenosa"];
+			});
+			var malformArterVenoGroup = malformArterVenoDim.group();
+			malformArterVenoPie
+				.width(240)
+				.height(300)
+				.dimension(malformArterVenoDim)
+				.group(malformArterVenoGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+
+			// ANEURISMA
+			var aneurismaDim = ndx.dimension(
+				function (d){
+					return +d["HayAneurisma"];
+			});
+			var aneurismaGroup = aneurismaDim.group();
+			aneurismaPie
+				.width(240)
+				.height(300)
+				.dimension(aneurismaDim)
+				.group(aneurismaGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+			
+			// TRANSFORMACION HEMORRAGICA
+			var transformHemoDim = ndx.dimension(
+				function (d){
+					return +d["HayTransformacionHemorragica"];
+			});
+			var transformHemoGroup = transformHemoDim.group();
+			transformHemoPie
+				.width(240)
+				.height(300)
+				.dimension(transformHemoDim)
+				.group(transformHemoGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+
+			// CONTRAIMAGEN ADICIONAL
+			var contraImAdicDim = ndx.dimension(
+				function (d){
+					return +d["HayContraImagenAdicional"];
+			});
+			var contraImAdicGroup = contraImAdicDim.group();
+			contraImAdicPie
+				.width(240)
+				.height(300)
+				.dimension(contraImAdicDim)
+				.group(contraImAdicGroup)
+				.legend(dc.legend())
+				.externalRadiusPadding(extPadding)
+				.on('pretransition', function(chart) {
+					chart.selectAll('text.pie-slice').text(function(d) {
+						return d.data.key + ' (' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%)';
+					})
+
+					chart.selectAll('.dc-legend-item text')
+						.text('')
+						.append('tspan')
+						.text(function(d) { 
+							return d.name; 
+						})
+						.append('tspan')
+						.text(function(d) { 
+							return ' (' + d.data + ')'; 
+						});
+				});
+
+
+			dc.renderAll();
+
+		});
+	</script>
+
+</body>
+</html>
